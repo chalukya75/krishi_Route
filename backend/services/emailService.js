@@ -59,12 +59,21 @@ const sendOTPEmail = async (email, otp, purpose = 'verification') => {
     return;
   }
 
-  await transporter.sendMail({
-    from: `"Krishi-Route" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject,
-    html: body,
-  });
+  try {
+    await transporter.sendMail({
+      from: `"Krishi-Route" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject,
+      html: body,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`\n⚠️ [DEV MODE] Email delivery failed (${error.code || error.message}).`);
+      console.log(`📧 [DEV MODE] OTP for ${email}: ${otp} (purpose: ${purpose})\n`);
+      return;
+    }
+    throw error;
+  }
 };
 
 module.exports = { sendOTPEmail };
